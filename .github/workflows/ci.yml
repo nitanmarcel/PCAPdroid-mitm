@@ -15,9 +15,9 @@ jobs:
           with:
             submodules: true
             path: android
-        - name: Set output
-          id: vars
-          run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        - name: Set short-sha
+          uses: benjlevesque/short-sha@v2.2
+          id: short-sha
         - name: Setup JAVA
           uses: actions/setup-java@v3
           with:
@@ -31,8 +31,13 @@ jobs:
           uses: sparkfabrik/android-build-action@v1.5.0
           with:
             project-path: android
-            output-path: app-debug-${{ steps.vars.outputs.sha_short }}.apk
+            output-path: app-debug-${{ env.SHA }}.apk
+          env:
+            SHA: ${{ steps.short-sha.outputs.sha }}
         - name: Upload artifacts
           uses: actions/upload-artifact@v3
           with:
-            path: app-debug-${{ steps.vars.outputs.sha_short }}.apk
+            path: app-debug-${{ env.SHA }}.apk
+            name: app-debug-${{ env.SHA }}
+          env:
+            SHA: ${{ steps.short-sha.outputs.sha }}
