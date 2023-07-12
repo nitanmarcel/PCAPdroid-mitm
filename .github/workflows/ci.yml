@@ -1,0 +1,38 @@
+name: Build debug
+on:
+  push:
+    branches: [ master ]
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  debug:
+    name: Debug
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v3
+          with:
+            submodules: true
+            path: android
+        - name: Set output
+          id: vars
+          run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        - name: Setup JAVA
+          uses: actions/setup-java@v3
+          with:
+            distribution: oracle
+            java-version: 17
+        - name: Setup python3.10
+          uses: actions/setup-python@v4
+          with:
+            python-version: '3.10'
+        - name: Run build
+          uses: sparkfabrik/android-build-action@v1.5.0
+          with:
+            project-path: android
+            output-path: app-debug-${{ steps.vars.outputs.sha_short }}.apk
+        - name: Upload artifacts
+          uses: actions/upload-artifact@v3
+          with:
+            path: app-debug-${{ steps.vars.outputs.sha_short }}.apk
